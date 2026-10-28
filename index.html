@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="hi" class="scroll-smooth"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMzQyODU5OTI0MDE2OTY1NDA1MyIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2U5NmJmNTQ1NWFhYzZhZjhfaW5kZXguaHRtbC05MDUifSwiZXhwIjoxNzkzMjEwMzM1LCJpYXQiOjE3OTMyMDY3MzUsImFsZyI6IlJTMjU2In0.o7kk-YYNkj6J5qdBmLccNGcM8Re2BaXvL2SyLvkf9IqG8Jbg4l-ajigQLnWjMr0aMolOSfpnFcfk6qDWjFkyW5leaspJD6_RluAtJFpdcFbMIgNAYZd9gmoS70bRqBfhzqx5mjBOqaWCGD7sVpYdswYLkjSymgPIgBbKp0tec0SdoMWTwU1AccSICb256R5hfv7DtypzcoD--wp2Cht2b84_QNl_WyanCLirQrc0i3u7Ubu7TD1g3qhr_BtXILBeUd2YPlQamuKX34KNCLgruRU_vfOyt192DQXUTzq0wYNFvABKyR6nAX4flDsiQQemgl-vAVPY-EQZaBxorUrKjg","c_e96bf5455aac6af8_index.html-905")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>श्री साँवरिया Tours And Travels | All-India Taxi &amp; Cab Service Vadodara</title>
+  <!-- Google Search SEO Meta Tags -->
+  <meta name="description" content="श्री साँवरिया Tours And Travels Vadodara - All-India Safe &amp; Reliable Taxi Service. Book Swift Dzire, Maruti Ertiga, and Innova Crysta at best per KM rates. Call +91 76980 26449.">
+  <meta name="keywords" content="Shree Sanwariya Tours And Travels, Taxi Service in Vadodara, Cab Booking Vadodara, Outstation Cab Vadodara, Innova Crysta Rental, Swift Dzire Taxi, Ertiga Cab">
+  <meta name="robots" content="index, follow">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- JSZip Library for reliable ZIP generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Poppins:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Poppins', sans-serif;
+    }
+    @keyframes pulse-slow {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 2.5s infinite;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #f59e0b;
+      border-radius: 4px;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.right-5{right:1.25rem}.top-0{top:0px}.top-20{top:5rem}.bottom-5{bottom:1.25rem}.right-3{right:0.75rem}.top-3{top:0.75rem}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.my-auto{margin-top:auto;margin-bottom:auto}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-8{margin-bottom:2rem}.mr-1{margin-right:0.25rem}.mt-0\.5{margin-top:0.125rem}.mt-10{margin-top:2.5rem}.mt-4{margin-top:1rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-10{margin-bottom:2.5rem}.mb-12{margin-bottom:3rem}.mb-6{margin-bottom:1.5rem}.ml-2{margin-left:0.5rem}.mr-2{margin-right:0.5rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-8{margin-top:2rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-11{height:2.75rem}.h-6{height:1.5rem}.h-8{height:2rem}.h-10{height:2.5rem}.h-20{height:5rem}.h-24{height:6rem}.h-16{height:4rem}.max-h-\[90vh\]{max-height:90vh}.max-h-\[480px\]{max-height:480px}.max-h-72{max-height:18rem}.w-11{width:2.75rem}.w-6{width:1.5rem}.w-8{width:2rem}.w-full{width:100%}.w-10{width:2.5rem}.w-20{width:5rem}.w-16{width:4rem}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-sm{max-width:24rem}.max-w-4xl{max-width:56rem}.max-w-5xl{max-width:64rem}.max-w-6xl{max-width:72rem}.max-w-md{max-width:28rem}.flex-1{flex:1 1 0%}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.list-inside{list-style-position:inside}.list-decimal{list-style-type:decimal}.list-disc{list-style-type:disc}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-8{gap:2rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.space-x-6 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(1.5rem * var(--tw-space-x-reverse));margin-left:calc(1.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-3\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.875rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.875rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.scroll-smooth{scroll-behavior:smooth}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.rounded{border-radius:0.25rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-l-4{border-left-width:4px}.border-t{border-top-width:1px}.border-t-4{border-top-width:4px}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.border-amber-500{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.border-amber-500\/40{border-color:rgb(245 158 11 / 0.4)}.border-blue-200{--tw-border-opacity:1;border-color:rgb(191 219 254 / var(--tw-border-opacity, 1))}.border-blue-400{--tw-border-opacity:1;border-color:rgb(96 165 250 / var(--tw-border-opacity, 1))}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-500{--tw-border-opacity:1;border-color:rgb(100 116 139 / var(--tw-border-opacity, 1))}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.border-slate-800\/80{border-color:rgb(30 41 59 / 0.8)}.border-amber-400\/40{border-color:rgb(251 191 36 / 0.4)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-blue-600{--tw-bg-opacity:1;background-color:rgb(37 99 235 / var(--tw-bg-opacity, 1))}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-700{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-slate-950\/85{background-color:rgb(2 6 23 / 0.85)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-slate-800\/90{background-color:rgb(30 41 59 / 0.9)}.bg-slate-950\/80{background-color:rgb(2 6 23 / 0.8)}.bg-\[radial-gradient\(\#f59e0b_1px\2c transparent_1px\)\]{background-image:radial-gradient(#f59e0b 1px,transparent 1px)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-blue-700{--tw-gradient-from:#1d4ed8 var(--tw-gradient-from-position);--tw-gradient-to:rgb(29 78 216 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-indigo-950{--tw-gradient-from:#1e1b4b var(--tw-gradient-from-position);--tw-gradient-to:rgb(30 27 75 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-slate-900{--tw-gradient-from:#0f172a var(--tw-gradient-from-position);--tw-gradient-to:rgb(15 23 42 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-slate-900{--tw-gradient-to:rgb(15 23 42 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #0f172a var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-indigo-900{--tw-gradient-to:#312e81 var(--tw-gradient-to-position)}.to-indigo-950{--tw-gradient-to:#1e1b4b var(--tw-gradient-to-position)}.to-slate-800{--tw-gradient-to:#1e293b var(--tw-gradient-to-position)}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-3{padding:0.75rem}.p-8{padding:2rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-7{padding-left:1.75rem;padding-right:1.75rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-14{padding-top:3.5rem;padding-bottom:3.5rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-16{padding-top:4rem;padding-bottom:4rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.pt-8{padding-top:2rem}.pr-1{padding-right:0.25rem}.pt-0{padding-top:0px}.pt-2{padding-top:0.5rem}.pt-6{padding-top:1.5rem}.pb-2{padding-bottom:0.5rem}.text-center{text-align:center}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[11px\]{font-size:11px}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-normal{font-weight:400}.uppercase{text-transform:uppercase}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-blue-950{--tw-text-opacity:1;color:rgb(23 37 84 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-emerald-800{--tw-text-opacity:1;color:rgb(6 95 70 / var(--tw-text-opacity, 1))}.text-emerald-950{--tw-text-opacity:1;color:rgb(2 44 34 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.opacity-15{opacity:0.15}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-amber-500\/20{--tw-shadow-color:rgb(245 158 11 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.shadow-emerald-600\/20{--tw-shadow-color:rgb(5 150 105 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.\[background-size\:20px_20px\]{background-size:20px 20px}.selection\:bg-amber-500 *::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-slate-900 *::selection{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.selection\:bg-amber-500::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-slate-900::selection{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.hover\:-translate-y-0\.5:hover{--tw-translate-y:-0.125rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:scale-105:hover{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:scale-110:hover{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.hover\:bg-amber-400:hover{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-500:hover{--tw-bg-opacity:1;background-color:rgb(59 130 246 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-700:hover{--tw-bg-opacity:1;background-color:rgb(29 78 216 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-500:hover{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.hover\:bg-red-600:hover{--tw-bg-opacity:1;background-color:rgb(220 38 38 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-600:hover{--tw-bg-opacity:1;background-color:rgb(71 85 105 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-600:hover{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.hover\:text-amber-400:hover{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.hover\:text-emerald-400:hover{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.hover\:underline:hover{-webkit-text-decoration-line:underline;text-decoration-line:underline}.hover\:shadow-xl:hover{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.focus\:border-amber-500:focus{--tw-border-opacity:1;border-color:rgb(245 158 11 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:flex{display:flex}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:gap-3{gap:0.75rem}.sm\:p-7{padding:1.75rem}.sm\:p-8{padding:2rem}.sm\:text-left{text-align:left}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 768px){.md\:col-span-5{grid-column:span 5 / span 5}.md\:col-span-7{grid-column:span 7 / span 7}.md\:mx-0{margin-left:0px;margin-right:0px}.md\:flex{display:flex}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:justify-start{justify-content:flex-start}.md\:py-20{padding-top:5rem;padding-bottom:5rem}.md\:text-left{text-align:left}}@media (min-width: 1024px){.lg\:col-span-5{grid-column:span 5 / span 5}.lg\:col-span-7{grid-column:span 7 / span 7}.lg\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.lg\:flex-row{flex-direction:row}.lg\:text-left{text-align:left}}</style></head>
+<body class="bg-slate-50 text-slate-800 relative selection:bg-amber-500 selection:text-slate-900">
+
+  <!-- ========================================== -->
+  <!-- TOP EXPORT / DOWNLOAD BAR (REMOVED IN ZIP) -->
+  <!-- ========================================== -->
+  
+
+  <!-- ========================================================= -->
+  <!-- GOOGLE SITES & GOOGLE LIVE STEP-BY-STEP MODAL             -->
+  <!-- ========================================================= -->
+  
+
+  <!-- Custom Toast Notification Box (No alert() used) -->
+  <div id="toastBox" class="fixed top-20 right-5 z-50 hidden max-w-sm bg-slate-900 text-white px-5 py-4 rounded-xl shadow-2xl border-l-4 border-amber-400 flex items-center gap-3 transition-all duration-300">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-amber-400 text-xl"></i>
+    <div>
+      <h4 id="toastTitle" class="font-bold text-sm">Success</h4>
+      <p id="toastMessage" class="text-xs text-slate-300 mt-0.5">Action completed successfully.</p>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MAIN BUSINESS WEBSITE                      -->
+  <!-- ========================================== -->
+
+  <!-- Top Contact Strip -->
+  <div class="bg-slate-950 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+    <div class="container mx-auto flex flex-wrap justify-between items-center gap-2">
+      <div class="flex items-center gap-4">
+        <span><i class="fa-solid fa-location-dot text-amber-400 mr-1"></i> Vadodara, Gujarat (All-India Service)</span>
+        <span class="hidden sm:inline"><i class="fa-solid fa-clock text-amber-400 mr-1"></i> 24x7 Booking Open</span>
+      </div>
+      <div class="flex items-center gap-4 font-semibold">
+        <a href="tel:+917698026449" class="dynamic-call hover:text-amber-400 transition" target="_blank" rel="noopener noreferrer">
+          <i class="fa-solid fa-phone text-amber-400 mr-1"></i> <span class="dynamic-phone-display">+91 76980 26449</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Bar -->
+  <nav class="bg-slate-900 text-white sticky top-0 z-40 shadow-xl border-b border-slate-800">
+    <div class="container mx-auto px-4 py-3.5 flex justify-between items-center">
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 text-xl font-black shadow-md group-hover:bg-amber-400 transition">
+          <i class="fa-solid fa-taxi"></i>
+        </div>
+        <div>
+          <span class="text-lg sm:text-xl font-extrabold text-amber-400 tracking-tight block leading-none">श्री साँवरिया</span>
+          <span class="text-xs sm:text-sm text-slate-300 font-semibold tracking-wider uppercase">Tours And Travels</span>
+        </div>
+      </a>
+
+      <!-- Desktop Menu -->
+      <div class="hidden md:flex items-center space-x-6 text-sm font-medium">
+        <a href="#fleet" class="hover:text-amber-400 transition">गाड़ियाँ &amp; Rates (Our Cars)</a>
+        <a href="#services" class="hover:text-amber-400 transition">Services</a>
+        <a href="#booking" class="hover:text-amber-400 transition">Book Online</a>
+        <a href="#reviews" class="hover:text-amber-400 transition">Reviews ⭐</a>
+      </div>
+
+      <!-- Right Action Buttons -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="tel:+917698026449" class="dynamic-call hidden sm:flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg shadow transition" target="_blank" rel="noopener noreferrer">
+          <i class="fa-solid fa-phone-volume"></i> Call Now
+        </a>
+        <button onclick="openAdminModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-user-shield"></i> <span>Admin Panel</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="relative bg-slate-900 text-white overflow-hidden">
+    <!-- Background Decorative Pattern -->
+    <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:20px_20px]"></div>
+    <div class="container mx-auto px-4 py-14 md:py-20 relative z-10">
+      <div class="grid md:grid-cols-12 gap-8 items-center">
+        <!-- Left Hero Text -->
+        <div class="md:col-span-7 text-center md:text-left">
+          <div class="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-5">
+            <i class="fa-solid fa-shield-heart"></i> 100% Safe, Clean &amp; Verified Cabs in Vadodara
+          </div>
+          <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight mb-4">
+            All-India Safe &amp; Reliable <span class="text-amber-400">Taxi Service</span>
+          </h1>
+          <p class="text-slate-300 text-base sm:text-lg mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed">
+            <strong>श्री साँवरिया Tours And Travels</strong> के साथ अपनी यात्रा को आरामदायक बनाएं। <span class="text-white font-semibold">Swift Dzire, Maruti Ertiga, और Innova Crysta</span> सबसे किफायती Per KM रेट पर उपलब्ध। Local, Outstation &amp; Airport Pickup/Drop।
+          </p>
+
+          <!-- Primary CTA Buttons -->
+          <div class="flex flex-wrap justify-center md:justify-start gap-4">
+            <a href="tel:+917698026449" class="dynamic-call bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 px-7 rounded-xl shadow-lg shadow-amber-500/20 flex items-center gap-2.5 text-base transition transform hover:-translate-y-0.5" target="_blank" rel="noopener noreferrer">
+              <i class="fa-solid fa-phone-volume text-lg"></i> Call Now
+            </a>
+            <a href="https://wa.me/917698026449?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%B5%E0%A4%B0%E0%A4%BF%E0%A4%AF%E0%A4%BE%20Tours%20And%20Travels%2C%20%E0%A4%AE%E0%A5%81%E0%A4%9D%E0%A5%87%20%E0%A4%9F%E0%A5%88%E0%A4%95%E0%A5%8D%E0%A4%B8%E0%A5%80%20%E0%A4%AC%E0%A5%81%E0%A4%95%E0%A4%BF%E0%A4%82%E0%A4%97%20%E0%A4%95%E0%A5%80%20%E0%A4%9C%E0%A4%BE%E0%A4%A8%E0%A4%95%E0%A4%BE%E0%A4%B0%E0%A5%80%20%E0%A4%9A%E0%A4%BE%E0%A4%B9%E0%A4%BF%E0%A4%8F%E0%A5%A4" target="_blank" class="dynamic-wa bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 px-7 rounded-xl shadow-lg shadow-emerald-600/20 flex items-center gap-2.5 text-base transition transform hover:-translate-y-0.5" rel="noopener noreferrer">
+              <i class="fa-brands fa-whatsapp text-xl"></i> WhatsApp Booking
+            </a>
+            <a href="#booking" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold py-3.5 px-6 rounded-xl flex items-center gap-2 text-base transition">
+              <i class="fa-solid fa-envelope text-amber-400"></i> Send Message
+            </a>
+          </div>
+
+          <!-- Trust Highlights -->
+          <div class="grid grid-cols-3 gap-4 mt-10 pt-8 border-t border-slate-800/80 text-center md:text-left">
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-amber-400">24/7</p>
+              <p class="text-xs text-slate-400 mt-0.5">Customer Support</p>
+            </div>
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-amber-400">180+</p>
+              <p class="text-xs text-slate-400 mt-0.5">Happy Rides</p>
+            </div>
+            <div>
+              <p class="text-2xl sm:text-3xl font-extrabold text-amber-400" id="heroAvgRating">5.0 ⭐</p>
+              <p class="text-xs text-slate-400 mt-0.5">Customer Rating</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Quick Inquiry Card -->
+        <div class="md:col-span-5">
+          <div class="bg-white text-slate-800 p-6 sm:p-7 rounded-2xl shadow-2xl border-t-4 border-amber-500">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-extrabold text-slate-900">🚖 Quick Cab Booking</h3>
+              <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2.5 py-1 rounded-full">Instant Reply</span>
+            </div>
+            <p class="text-xs text-slate-500 mb-4">अपनी यात्रा की जानकारी भरें, हम तुरंत कॉल करेंगे:</p>
+            <form onsubmit="submitQuickBooking(event)" class="space-y-3.5">
+              <div>
+                <input type="text" id="quickName" required="" placeholder="आपका नाम (Your Name)*" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <input type="tel" id="quickPhone" required="" placeholder="मोबाइल नंबर (Mobile Number)*" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <input type="text" id="quickPickup" required="" placeholder="कहाँ से (Pickup)*" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                <input type="text" id="quickDrop" required="" placeholder="कहाँ तक (Drop)*" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <select id="quickCar" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:outline-none focus:border-amber-500">
+                  <option value="Swift Dzire">Swift Dzire (4+1)</option>
+                  <option value="Maruti Ertiga">Maruti Ertiga (6+1)</option>
+                  <option value="Innova Crysta">Innova Crysta (7+1)</option>
+                </select>
+                <input type="date" id="quickDate" required="" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+              <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-paper-plane"></i> Book &amp; Send Inquiry
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Our Fleet & Per KM Rates Section -->
+  <section id="fleet" class="py-16 container mx-auto px-4">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-amber-600 font-bold text-xs uppercase tracking-widest bg-amber-100 px-3 py-1 rounded-full">Our Well-Maintained Fleet</span>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2">हमारी गाड़ियाँ और किराया (Our Cars)</h2>
+      <p class="text-slate-600 text-sm sm:text-base mt-2">साफ-सुथरी AC गाड़ियाँ और अनुभवी ड्राइवर। अपनी ज़रूरत के अनुसार गाड़ी चुनें:</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <!-- Car 1: Swift Dzire -->
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-xl transition">
+        <div>
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-center relative">
+            <span class="absolute top-3 right-3 bg-amber-500 text-slate-950 text-xs font-extrabold px-2.5 py-1 rounded-full">Popular Sedan</span>
+            <div class="w-20 h-20 mx-auto bg-amber-500/20 border border-amber-400/40 rounded-full flex items-center justify-center text-amber-400 text-4xl mb-3">
+              <i class="fa-solid fa-car"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-white">Swift Dzire</h3>
+            <p class="text-slate-300 text-xs mt-1">4+1 Seater | Full AC | Comfortable Sedan</p>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl mb-4">
+              <span class="text-xs font-bold text-slate-600 uppercase">Outstation Rate</span>
+              <span class="text-2xl font-extrabold text-slate-900">₹<span id="rateDzire">12</span><span class="text-xs font-normal text-slate-600">/km</span></span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-600 mb-6">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> 4 Passengers + 1 Driver</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Chilled AC &amp; Clean Interiors</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Best for Family &amp; Business Trips</li>
+            </ul>
+          </div>
+        </div>
+        <div class="p-6 pt-0 grid grid-cols-2 gap-3">
+          <a href="tel:+917698026449" class="dynamic-call bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-phone"></i> Call
+          </a>
+          <a onclick="bookCarWhatsApp('Swift Dzire')" href="javascript:void(0)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition">
+            <i class="fa-brands fa-whatsapp text-base"></i> Book Now
+          </a>
+        </div>
+      </div>
+
+      <!-- Car 2: Maruti Ertiga -->
+      <div class="bg-white rounded-2xl shadow-lg border-2 border-amber-500 overflow-hidden flex flex-col justify-between hover:shadow-xl transition relative">
+        <div>
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-center relative">
+            <span class="absolute top-3 right-3 bg-amber-500 text-slate-950 text-xs font-extrabold px-2.5 py-1 rounded-full">Best Value SUV</span>
+            <div class="w-20 h-20 mx-auto bg-amber-500/20 border border-amber-400/40 rounded-full flex items-center justify-center text-amber-400 text-4xl mb-3">
+              <i class="fa-solid fa-van-shuttle"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-white">Maruti Ertiga</h3>
+            <p class="text-slate-300 text-xs mt-1">6+1 Seater | Dual AC | Spacious SUV/MUV</p>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl mb-4">
+              <span class="text-xs font-bold text-slate-600 uppercase">Outstation Rate</span>
+              <span class="text-2xl font-extrabold text-slate-900">₹<span id="rateErtiga">15</span><span class="text-xs font-normal text-slate-600">/km</span></span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-600 mb-6">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> 6 Passengers + 1 Driver</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Extra Luggage Carrier Available</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Ideal for Group &amp; Pilgrimage Tours</li>
+            </ul>
+          </div>
+        </div>
+        <div class="p-6 pt-0 grid grid-cols-2 gap-3">
+          <a href="tel:+917698026449" class="dynamic-call bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-phone"></i> Call
+          </a>
+          <a onclick="bookCarWhatsApp('Maruti Ertiga')" href="javascript:void(0)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition">
+            <i class="fa-brands fa-whatsapp text-base"></i> Book Now
+          </a>
+        </div>
+      </div>
+
+      <!-- Car 3: Innova Crysta -->
+      <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-xl transition">
+        <div>
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-center relative">
+            <span class="absolute top-3 right-3 bg-amber-500 text-slate-950 text-xs font-extrabold px-2.5 py-1 rounded-full">Premium Luxury</span>
+            <div class="w-20 h-20 mx-auto bg-amber-500/20 border border-amber-400/40 rounded-full flex items-center justify-center text-amber-400 text-4xl mb-3">
+              <i class="fa-solid fa-car-side"></i>
+            </div>
+            <h3 class="text-2xl font-extrabold text-white">Innova Crysta</h3>
+            <p class="text-slate-300 text-xs mt-1">7+1 Seater | Luxury AC | Supreme Comfort</p>
+          </div>
+          <div class="p-6">
+            <div class="flex justify-between items-center bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl mb-4">
+              <span class="text-xs font-bold text-slate-600 uppercase">Outstation Rate</span>
+              <span class="text-2xl font-extrabold text-slate-900">₹<span id="rateCrysta">19</span><span class="text-xs font-normal text-slate-600">/km</span></span>
+            </div>
+            <ul class="space-y-2 text-sm text-slate-600 mb-6">
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> 7 Passengers + 1 Driver</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Captain / Sofa Seats Comfort</li>
+              <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-600"></i> Best for Long All-India Tours &amp; VIPs</li>
+            </ul>
+          </div>
+        </div>
+        <div class="p-6 pt-0 grid grid-cols-2 gap-3">
+          <a href="tel:+917698026449" class="dynamic-call bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition" target="_blank" rel="noopener noreferrer">
+            <i class="fa-solid fa-phone"></i> Call
+          </a>
+          <a onclick="bookCarWhatsApp('Innova Crysta')" href="javascript:void(0)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-center text-sm flex items-center justify-center gap-1.5 transition">
+            <i class="fa-brands fa-whatsapp text-base"></i> Book Now
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular Routes / Services Banner -->
+  <section id="services" class="py-12 bg-slate-900 text-white px-4">
+    <div class="container mx-auto max-w-6xl">
+      <div class="text-center mb-10">
+        <h3 class="text-2xl sm:text-3xl font-extrabold text-amber-400">हमारी प्रमुख सेवाएं (Our Services)</h3>
+        <p class="text-slate-300 text-sm mt-1">वडोदरा से पूरे भारत में कहीं भी जाने के लिए 24 घंटे सेवा उपलब्ध</p>
+      </div>
+      <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-5">
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-xl text-center">
+          <i class="fa-solid fa-route text-3xl text-amber-400 mb-3"></i>
+          <h4 class="font-bold text-base">Outstation Tours</h4>
+          <p class="text-xs text-slate-400 mt-1">Udaipur, Mount Abu, Statue of Unity, Somnath, Dwarka, Shirdi, Ujjain &amp; All India.</p>
+        </div>
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-xl text-center">
+          <i class="fa-solid fa-plane-departure text-3xl text-amber-400 mb-3"></i>
+          <h4 class="font-bold text-base">Airport Pickup &amp; Drop</h4>
+          <p class="text-xs text-slate-400 mt-1">Vadodara, Ahmedabad, Surat &amp; Mumbai Airport 24x7 on-time transfer.</p>
+        </div>
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-xl text-center">
+          <i class="fa-solid fa-gopuram text-3xl text-amber-400 mb-3"></i>
+          <h4 class="font-bold text-base">साँवरिया सेठ दर्शन</h4>
+          <p class="text-xs text-slate-400 mt-1">Special packages for Shree Sanwariya Seth Ji (Mandphiya), Nathdwara &amp; Rajasthan tours.</p>
+        </div>
+        <div class="bg-slate-800/90 border border-slate-700 p-5 rounded-xl text-center">
+          <i class="fa-solid fa-briefcase text-3xl text-amber-400 mb-3"></i>
+          <h4 class="font-bold text-base">Local &amp; Corporate</h4>
+          <p class="text-xs text-slate-400 mt-1">8 Hrs / 80 KM local city rental, wedding car bookings &amp; corporate travel.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Direct Message & Booking Inquiry Section -->
+  <section id="booking" class="py-16 bg-slate-100 px-4">
+    <div class="container mx-auto max-w-4xl">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden grid md:grid-cols-12">
+        <!-- Contact Details Sidebar -->
+        <div class="md:col-span-5 bg-slate-900 text-white p-8 flex flex-col justify-between">
+          <div>
+            <span class="text-amber-400 text-xs font-bold uppercase tracking-wider">Contact Us Direct</span>
+            <h3 class="text-2xl font-extrabold mt-1 mb-4">बुकिंग या पूछताछ के लिए मैसेज भेजें</h3>
+            <p class="text-slate-300 text-sm mb-6 leading-relaxed">
+              आप हमें सीधे वेबसाइट से मैसेज भेज सकते हैं, या नीचे दिए गए बटन से तुरंत कॉल या WhatsApp कर सकते हैं।
+            </p>
+            <div class="space-y-4 text-sm">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-phone"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Call Anytime (24/7)</p>
+                  <a href="tel:+917698026449" class="dynamic-call font-bold text-base hover:text-amber-400" target="_blank" rel="noopener noreferrer"><span class="dynamic-phone-display">+91 76980 26449</span></a>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                  <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">WhatsApp Number</p>
+                  <a href="https://wa.me/917698026449?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%B5%E0%A4%B0%E0%A4%BF%E0%A4%AF%E0%A4%BE%20Tours%20And%20Travels%2C%20%E0%A4%AE%E0%A5%81%E0%A4%9D%E0%A5%87%20%E0%A4%9F%E0%A5%88%E0%A4%95%E0%A5%8D%E0%A4%B8%E0%A5%80%20%E0%A4%AC%E0%A5%81%E0%A4%95%E0%A4%BF%E0%A4%82%E0%A4%97%20%E0%A4%95%E0%A5%80%20%E0%A4%9C%E0%A4%BE%E0%A4%A8%E0%A4%95%E0%A4%BE%E0%A4%B0%E0%A5%80%20%E0%A4%9A%E0%A4%BE%E0%A4%B9%E0%A4%BF%E0%A4%8F%E0%A5%A4" target="_blank" class="dynamic-wa font-bold text-base hover:text-emerald-400" rel="noopener noreferrer"><span class="dynamic-phone-display">+91 76980 26449</span></a>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg">
+                  <i class="fa-solid fa-location-dot"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-400">Head Office</p>
+                  <p class="font-bold">Vadodara, Gujarat (All-India Service)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 pt-6 border-t border-slate-800">
+            <p class="text-xs text-slate-400 mb-2">Direct One-Click Connect:</p>
+            <div class="flex gap-2">
+              <a href="tel:+917698026449" class="dynamic-call flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-lg text-center text-xs" target="_blank" rel="noopener noreferrer">
+                <i class="fa-solid fa-phone mr-1"></i> Call Now
+              </a>
+              <a href="https://wa.me/917698026449?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%B5%E0%A4%B0%E0%A4%BF%E0%A4%AF%E0%A4%BE%20Tours%20And%20Travels%2C%20%E0%A4%AE%E0%A5%81%E0%A4%9D%E0%A5%87%20%E0%A4%9F%E0%A5%88%E0%A4%95%E0%A5%8D%E0%A4%B8%E0%A5%80%20%E0%A4%AC%E0%A5%81%E0%A4%95%E0%A4%BF%E0%A4%82%E0%A4%97%20%E0%A4%95%E0%A5%80%20%E0%A4%9C%E0%A4%BE%E0%A4%A8%E0%A4%95%E0%A4%BE%E0%A4%B0%E0%A5%80%20%E0%A4%9A%E0%A4%BE%E0%A4%B9%E0%A4%BF%E0%A4%8F%E0%A5%A4" target="_blank" class="dynamic-wa flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-center text-xs" rel="noopener noreferrer">
+                <i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message Form -->
+        <div class="md:col-span-7 p-8">
+          <h4 class="text-xl font-extrabold text-slate-900 mb-1"><i class="fa-solid fa-envelope-open-text text-amber-500 mr-2"></i>Send Direct Message</h4>
+          <p class="text-xs text-slate-500 mb-6">यह मैसेज सीधे हमारे Admin Panel में सेव होगा और आप चाहें तो WhatsApp पर भी भेज सकते हैं।</p>
+
+          <form onsubmit="submitContactMessage(event)" class="space-y-4">
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">आपका नाम (Full Name)*</label>
+                <input type="text" id="msgName" required="" placeholder="उदा. राजेश पटेल" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">मोबाइल नंबर (Phone Number)*</label>
+                <input type="tel" id="msgPhone" required="" placeholder="10-digit mobile number" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">गाड़ी चुनें (Select Car)</label>
+                <select id="msgCar" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+                  <option value="Swift Dzire">Swift Dzire (4+1 AC)</option>
+                  <option value="Maruti Ertiga">Maruti Ertiga (6+1 AC)</option>
+                  <option value="Innova Crysta">Innova Crysta (7+1 Luxury)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">यात्रा की तारीख (Travel Date)</label>
+                <input type="date" id="msgDate" required="" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">मैसेज / कहाँ से कहाँ जाना है (Route &amp; Details)*</label>
+              <textarea id="msgText" required="" placeholder="उदा. हमें वडोदरा से सांवरिया सेठ मंदिर (2 दिन) के लिए गाड़ी चाहिए..." class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm h-24 focus:outline-none focus:border-amber-500"></textarea>
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button type="submit" class="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-paper-plane text-amber-400"></i> Send Message to Admin
+              </button>
+              <button type="button" onclick="sendFormToWhatsApp()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-5 rounded-xl shadow-md transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-brands fa-whatsapp text-lg"></i> Send on WhatsApp
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Customer Ratings & Reviews Section -->
+  <section id="reviews" class="py-16 container mx-auto px-4">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <div class="inline-flex items-center gap-2 bg-amber-100 text-amber-800 font-bold text-xs px-3.5 py-1.5 rounded-full mb-2">
+        <i class="fa-solid fa-star text-amber-500"></i> Verified Customer Feedback
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900">Customer Ratings &amp; Reviews</h2>
+      <p class="text-slate-600 text-sm mt-2">हमारे ग्राहकों का अनुभव देखें और अपनी यात्रा का रिव्यू भी जोड़ें:</p>
+    </div>
+
+    <div class="grid lg:grid-cols-12 gap-8 max-w-6xl mx-auto items-start">
+      <!-- Left: Add Review Form -->
+      <div class="lg:col-span-5 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200">
+        <h3 class="text-xl font-extrabold text-slate-900 mb-2">⭐ अपना रिव्यू दें (Rate Us)</h3>
+        <p class="text-xs text-slate-500 mb-5">आपकी रेटिंग हमारे सर्विस को और बेहतर बनाने में मदद करती है।</p>
+
+        <form onsubmit="submitCustomerReview(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">आपका नाम (Your Name)*</label>
+            <input type="text" id="revName" required="" placeholder="Enter your name" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">कहाँ की यात्रा की? (Trip City / Route)</label>
+            <input type="text" id="revCity" placeholder="e.g. Vadodara to Udaipur" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:border-amber-500">
+          </div>
+
+          <!-- Interactive Star Rating Selector -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">स्टार रेटिंग चुनें (Tap Stars)*</label>
+            <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div id="starSelector" class="flex gap-1.5 text-2xl cursor-pointer">
+                <i onclick="selectStar(1)" class="fa-solid fa-star text-amber-400 star-item transition transform hover:scale-110"></i>
+                <i onclick="selectStar(2)" class="fa-solid fa-star text-amber-400 star-item transition transform hover:scale-110"></i>
+                <i onclick="selectStar(3)" class="fa-solid fa-star text-amber-400 star-item transition transform hover:scale-110"></i>
+                <i onclick="selectStar(4)" class="fa-solid fa-star text-amber-400 star-item transition transform hover:scale-110"></i>
+                <i onclick="selectStar(5)" class="fa-solid fa-star text-amber-400 star-item transition transform hover:scale-110"></i>
+              </div>
+              <span id="starLabel" class="ml-2 text-xs font-bold text-amber-600">5/5 - Excellent!</span>
+            </div>
+            <input type="hidden" id="revStars" value="5">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">आपका अनुभव लिखें (Review Comment)*</label>
+            <textarea id="revComment" required="" placeholder="गाड़ी की सफाई और ड्राइवर का व्यवहार कैसा रहा?" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl text-sm h-24 focus:outline-none focus:border-amber-500"></textarea>
+          </div>
+
+          <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold py-3.5 rounded-xl shadow-md transition text-sm">
+            <i class="fa-solid fa-check-circle mr-1"></i> Submit Review
+          </button>
+        </form>
+      </div>
+
+      <!-- Right: Live Reviews List -->
+      <div class="lg:col-span-7">
+        <div class="bg-slate-900 text-white p-5 rounded-2xl mb-5 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="bg-amber-500 text-slate-950 font-black text-2xl px-4 py-2 rounded-xl" id="avgRatingBadge">5.0</div>
+            <div>
+              <div class="text-amber-400 text-sm">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="text-xs text-slate-300">Based on <span id="totalReviewsCount" class="font-bold text-white">3</span> Customer Reviews</p>
+            </div>
+          </div>
+          <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-amber-400">100% Genuine Service</span>
+        </div>
+
+        <div id="reviewsList" class="space-y-4 max-h-[480px] overflow-y-auto pr-1">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">राजेश भाई शाह</h4>
+              <p class="text-xs text-slate-400">Vadodara to Nathdwara</p>
+            </div>
+            <div class="text-amber-400 text-xs">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+          </div>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">श्री साँवरिया ट्रैवल्स की सर्विस बहुत ही शानदार है। हमने Innova Crysta बुक की थी, गाड़ी एकदम नई और साफ थी। ड्राइवर भाई का व्यवहार भी बहुत अच्छा था।</p>
+        </div>
+      
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">अमित पटेल</h4>
+              <p class="text-xs text-slate-400">Ahmedabad Airport Drop</p>
+            </div>
+            <div class="text-amber-400 text-xs">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+          </div>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">रात को 3 बजे एयरपोर्ट ड्रॉप के लिए Swift Dzire टाइम से घर के बाहर खड़ी थी। बहुत ही भरोसेमंद टैक्सी सर्विस!</p>
+        </div>
+      
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">पूनम शर्मा</h4>
+              <p class="text-xs text-slate-400">Statue of Unity Family Trip</p>
+            </div>
+            <div class="text-amber-400 text-xs">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+            </div>
+          </div>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">किराया वाजिब है और गाड़ी में कोई एक्स्ट्रा हिडन चार्ज नहीं लिया। पूरे परिवार को यात्रा में बहुत आनंद आया।</p>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 text-slate-400 py-12 px-4 border-t border-slate-800">
+    <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-6">
+      <div class="text-center sm:text-left">
+        <h3 class="text-xl font-extrabold text-amber-400"><i class="fa-solid fa-taxi mr-2"></i>श्री साँवरिया Tours And Travels</h3>
+        <p class="text-xs text-slate-400 mt-1">All-India Safe &amp; Reliable Cab Service | Swift Dzire • Ertiga • Innova Crysta</p>
+        <p class="text-xs text-slate-500 mt-1">Vadodara, Gujarat | Phone: <span class="dynamic-phone-display text-slate-300">+91 76980 26449</span></p>
+      </div>
+      <div class="flex gap-3">
+        <button onclick="openAdminModal()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-lg border border-slate-800">
+          <i class="fa-solid fa-lock mr-1 text-amber-400"></i> Owner Admin Login
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- FLOATING ACTION BUTTONS (WhatsApp, Call, Direct Message) -->
+  <!-- ========================================================= -->
+  <div class="fixed bottom-5 right-5 flex flex-col items-end space-y-3 z-40">
+    <!-- Direct Message Button -->
+    <a href="#booking" title="Send Direct Message" class="group flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-3 rounded-full shadow-2xl transition transform hover:scale-105">
+      <i class="fa-solid fa-comment-dots text-lg"></i>
+      <span class="text-xs font-extrabold hidden sm:inline">Message</span>
+    </a>
+
+    <!-- Call Button -->
+    <a href="tel:+917698026449" title="Call Now" class="dynamic-call group flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-3 rounded-full shadow-2xl transition transform hover:scale-105" target="_blank" rel="noopener noreferrer">
+      <i class="fa-solid fa-phone-volume text-lg"></i>
+      <span class="text-xs font-extrabold hidden sm:inline">Call Now</span>
+    </a>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/917698026449?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%A4%B6%E0%A5%8D%E0%A4%B0%E0%A5%80%20%E0%A4%B8%E0%A4%BE%E0%A4%81%E0%A4%B5%E0%A4%B0%E0%A4%BF%E0%A4%AF%E0%A4%BE%20Tours%20And%20Travels%2C%20%E0%A4%AE%E0%A5%81%E0%A4%9D%E0%A5%87%20%E0%A4%9F%E0%A5%88%E0%A4%95%E0%A5%8D%E0%A4%B8%E0%A5%80%20%E0%A4%AC%E0%A5%81%E0%A4%95%E0%A4%BF%E0%A4%82%E0%A4%97%20%E0%A4%95%E0%A5%80%20%E0%A4%9C%E0%A4%BE%E0%A4%A8%E0%A4%95%E0%A4%BE%E0%A4%B0%E0%A5%80%20%E0%A4%9A%E0%A4%BE%E0%A4%B9%E0%A4%BF%E0%A4%8F%E0%A5%A4" target="_blank" title="WhatsApp Booking" class="dynamic-wa animate-pulse-slow flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-4 py-3.5 rounded-full shadow-2xl transition transform hover:scale-105" rel="noopener noreferrer">
+      <i class="fa-brands fa-whatsapp text-2xl"></i>
+      <span class="text-xs font-extrabold hidden sm:inline">WhatsApp</span>
+    </a>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- PASSWORD-PROTECTED ADMIN PANEL MODAL                      -->
+  <!-- ========================================================= -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border border-slate-200">
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-user-shield text-amber-400 text-xl"></i>
+          <div>
+            <h3 class="text-lg font-extrabold">श्री साँवरिया Tours - Admin Panel</h3>
+            <p class="text-xs text-slate-400">Manage Inquiries, Reviews, Phone Number &amp; Car Rates</p>
+          </div>
+        </div>
+        <button onclick="closeAdminModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-red-600 text-white flex items-center justify-center text-lg transition">×</button>
+      </div>
+
+      <!-- Step 1: Login Screen inside Modal -->
+      <div id="adminLoginScreen" class="p-8 text-center max-w-md mx-auto my-auto">
+        <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto text-2xl mb-4">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <h4 class="text-xl font-extrabold text-slate-900 mb-1">Enter Admin Password</h4>
+        <p class="text-xs text-slate-500 mb-4">Default Owner Password: <code class="bg-slate-100 px-2 py-0.5 rounded font-bold text-slate-800">admin123</code></p>
+        <form onsubmit="verifyAdminPassword(event)" class="space-y-3">
+          <input type="password" id="adminPassInput" value="admin123" placeholder="Enter Password" class="w-full p-3 border border-slate-300 rounded-xl text-center font-bold focus:outline-none focus:border-amber-500">
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold py-3 rounded-xl shadow transition">
+            Unlock Admin Dashboard
+          </button>
+        </form>
+      </div>
+
+      <!-- Step 2: Unlocked Admin Dashboard -->
+      <div id="adminDashboardScreen" class="hidden p-6 overflow-y-auto space-y-6">
+        <!-- Settings Grid: Phone & Per KM Rates -->
+        <div class="grid md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+          <!-- Phone Number Update -->
+          <div>
+            <h4 class="font-bold text-sm text-slate-900 mb-2"><i class="fa-solid fa-phone text-amber-500 mr-1"></i> Update Call &amp; WhatsApp Number</h4>
+            <p class="text-xs text-slate-500 mb-2">शुरुआत में 91 ज़रूर लगाएं (e.g. 917698026449):</p>
+            <div class="flex gap-2">
+              <input type="text" id="adminPhoneInput" class="flex-1 p-2.5 border border-slate-300 rounded-lg text-sm font-bold" value="917698026449" placeholder="917698026449">
+              <button onclick="saveAdminSettings()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg text-xs font-bold">
+                Save Number
+              </button>
+            </div>
+          </div>
+
+          <!-- Per KM Rate Update -->
+          <div>
+            <h4 class="font-bold text-sm text-slate-900 mb-2"><i class="fa-solid fa-indian-rupee-sign text-amber-500 mr-1"></i> Update Per KM Car Rates (₹/km)</h4>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="text-[11px] font-bold text-slate-600">Dzire (₹)</label>
+                <input type="number" id="adminRateDzire" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-bold">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-600">Ertiga (₹)</label>
+                <input type="number" id="adminRateErtiga" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-bold">
+              </div>
+              <div>
+                <label class="text-[11px] font-bold text-slate-600">Crysta (₹)</label>
+                <input type="number" id="adminRateCrysta" class="w-full p-2 border border-slate-300 rounded-lg text-sm font-bold">
+              </div>
+            </div>
+            <button onclick="saveAdminSettings()" class="mt-2 w-full bg-amber-500 hover:bg-amber-400 text-slate-950 py-2 rounded-lg text-xs font-extrabold">
+              Update All Settings Live
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages & Reviews Management -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Booking Inquiries -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex justify-between items-center border-b pb-2 mb-3">
+              <h4 class="font-extrabold text-slate-900 text-sm">📩 Customer Messages &amp; Bookings (<span id="adminMsgCount">0</span>)</h4>
+              <button onclick="clearAllMessages()" class="text-xs text-red-600 hover:underline font-semibold">Clear All</button>
+            </div>
+            <div id="adminMessagesList" class="space-y-3 max-h-72 overflow-y-auto text-xs"></div>
+          </div>
+
+          <!-- Customer Reviews -->
+          <div class="border border-slate-200 rounded-xl p-4">
+            <div class="flex justify-between items-center border-b pb-2 mb-3">
+              <h4 class="font-extrabold text-slate-900 text-sm">⭐ Manage Customer Reviews (<span id="adminRevCount">0</span>)</h4>
+            </div>
+            <div id="adminReviewsList" class="space-y-3 max-h-72 overflow-y-auto text-xs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- JAVASCRIPT LOGIC (STATE, ADMIN, AND RELIABLE ZIP EXPORT)  -->
+  <!-- ========================================================= -->
+  <script>
+    // 1. Default State & LocalStorage Initialization (Updated with 917698026449)
+    localStorage.removeItem('sanwariya_phone');
+    let businessPhone = localStorage.getItem('sanwariya_phone_v2') || '917698026449';
+    let carRates = JSON.parse(localStorage.getItem('sanwariya_rates')) || {
+      dzire: 12,
+      ertiga: 15,
+      crysta: 19
+    };
+
+    let customerMessages = JSON.parse(localStorage.getItem('sanwariya_messages')) || [
+      {
+        id: 1,
+        name: "राहुल पटेल",
+        phone: "9876543210",
+        car: "Innova Crysta",
+        date: "2026-11-05",
+        details: "वडोदरा से साँवरिया सेठ मंदिर और उदयपुर (3 दिन का फैमिली ट्रिप)",
+        timestamp: "Today, 10:15 AM"
+      }
+    ];
+
+    let customerReviews = JSON.parse(localStorage.getItem('sanwariya_reviews')) || [
+      {
+        id: 101,
+        name: "राजेश भाई शाह",
+        city: "Vadodara to Nathdwara",
+        stars: 5,
+        comment: "श्री साँवरिया ट्रैवल्स की सर्विस बहुत ही शानदार है। हमने Innova Crysta बुक की थी, गाड़ी एकदम नई और साफ थी। ड्राइवर भाई का व्यवहार भी बहुत अच्छा था।"
+      },
+      {
+        id: 102,
+        name: "अमित पटेल",
+        city: "Ahmedabad Airport Drop",
+        stars: 5,
+        comment: "रात को 3 बजे एयरपोर्ट ड्रॉप के लिए Swift Dzire टाइम से घर के बाहर खड़ी थी। बहुत ही भरोसेमंद टैक्सी सर्विस!"
+      },
+      {
+        id: 103,
+        name: "पूनम शर्मा",
+        city: "Statue of Unity Family Trip",
+        stars: 5,
+        comment: "किराया वाजिब है और गाड़ी में कोई एक्स्ट्रा हिडन चार्ज नहीं लिया। पूरे परिवार को यात्रा में बहुत आनंद आया।"
+      }
+    ];
+
+    // 2. Toast Notification Helper (Replaces alert)
+    function showToast(title, message) {
+      const box = document.getElementById('toastBox');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastMessage').innerText = message;
+      box.classList.remove('hidden');
+      setTimeout(() => {
+        box.classList.add('hidden');
+      }, 4500);
+    }
+
+    // 3. Format & Apply Phone Number + Car Rates Across Page
+    function formatDisplayPhone(raw) {
+      const clean = raw.replace(/\D/g, '');
+      if (clean.length === 12 && clean.startsWith('91')) {
+        return `+91 ${clean.slice(2, 7)} ${clean.slice(7)}`;
+      }
+      return `+${clean}`;
+    }
+
+    function applySiteSettings() {
+      const cleanPhone = businessPhone.replace(/\D/g, '') || '917698026449';
+      const displayStr = formatDisplayPhone(cleanPhone);
+
+      // Update all phone text displays
+      document.querySelectorAll('.dynamic-phone-display').forEach(el => {
+        el.innerText = displayStr;
+      });
+
+      // Update all tel: links
+      document.querySelectorAll('.dynamic-call').forEach(el => {
+        el.href = `tel:+${cleanPhone}`;
+      });
+
+      // Update all WhatsApp links
+      const defaultWaMsg = encodeURIComponent("नमस्ते श्री साँवरिया Tours And Travels, मुझे टैक्सी बुकिंग की जानकारी चाहिए।");
+      document.querySelectorAll('.dynamic-wa').forEach(el => {
+        el.href = `https://wa.me/${cleanPhone}?text=${defaultWaMsg}`;
+      });
+
+      // Update Per KM Rates
+      document.getElementById('rateDzire').innerText = carRates.dzire;
+      document.getElementById('rateErtiga').innerText = carRates.ertiga;
+      document.getElementById('rateCrysta').innerText = carRates.crysta;
+
+      // Sync Admin Inputs
+      const adminPhoneEl = document.getElementById('adminPhoneInput');
+      if (adminPhoneEl) {
+        adminPhoneEl.value = cleanPhone;
+        document.getElementById('adminRateDzire').value = carRates.dzire;
+        document.getElementById('adminRateErtiga').value = carRates.ertiga;
+        document.getElementById('adminRateCrysta').value = carRates.crysta;
+      }
+    }
+
+    // 4. WhatsApp Specific Car Booking Helper
+    function bookCarWhatsApp(carName) {
+      const cleanPhone = businessPhone.replace(/\D/g, '') || '917698026449';
+      const text = encodeURIComponent(`नमस्ते श्री साँवरिया Tours, मुझे *${carName}* बुक करनी है। कृपया रेट और उपलब्धता बताएं।`);
+      window.open(`https://wa.me/${cleanPhone}?text=${text}`, '_blank');
+    }
+
+    // 5. Submit Hero Quick Booking Form
+    function submitQuickBooking(e) {
+      e.preventDefault();
+      const name = document.getElementById('quickName').value.trim();
+      const phone = document.getElementById('quickPhone').value.trim();
+      const pickup = document.getElementById('quickPickup').value.trim();
+      const drop = document.getElementById('quickDrop').value.trim();
+      const car = document.getElementById('quickCar').value;
+      const date = document.getElementById('quickDate').value;
+
+      const newEntry = {
+        id: Date.now(),
+        name,
+        phone,
+        car,
+        date,
+        details: `Pickup: ${pickup} ➔ Drop: ${drop}`,
+        timestamp: new Date().toLocaleString()
+      };
+
+      customerMessages.unshift(newEntry);
+      localStorage.setItem('sanwariya_messages', JSON.stringify(customerMessages));
+      e.target.reset();
+      showToast("बुकिंग इंक्वायरी मिल गई!", "धन्यवाद! हम जल्द ही आपको कॉल करेंगे।");
+    }
+
+    // 6. Submit Direct Contact Message Form
+    function submitContactMessage(e) {
+      e.preventDefault();
+      const name = document.getElementById('msgName').value.trim();
+      const phone = document.getElementById('msgPhone').value.trim();
+      const car = document.getElementById('msgCar').value;
+      const date = document.getElementById('msgDate').value;
+      const details = document.getElementById('msgText').value.trim();
+
+      const newEntry = {
+        id: Date.now(),
+        name,
+        phone,
+        car,
+        date,
+        details,
+        timestamp: new Date().toLocaleString()
+      };
+
+      customerMessages.unshift(newEntry);
+      localStorage.setItem('sanwariya_messages', JSON.stringify(customerMessages));
+      e.target.reset();
+      showToast("मैसेज भेज दिया गया है!", "आपका मैसेज हमारे Admin Panel में सेव हो गया है।");
+    }
+
+    function sendFormToWhatsApp() {
+      const name = document.getElementById('msgName').value.trim() || 'Customer';
+      const phone = document.getElementById('msgPhone').value.trim() || '';
+      const car = document.getElementById('msgCar').value;
+      const date = document.getElementById('msgDate').value || 'Not specified';
+      const details = document.getElementById('msgText').value.trim() || 'Taxi Inquiry';
+
+      const cleanPhone = businessPhone.replace(/\D/g, '') || '917698026449';
+      const waText = encodeURIComponent(
+        `*🚖 नई बुकिंग पूछताछ (श्री साँवरिया Tours)*\n` +
+        `*नाम:* ${name}\n` +
+        `*मोबाइल:* ${phone}\n` +
+        `*गाड़ी:* ${car}\n` +
+        `*तारीख:* ${date}\n` +
+        `*विवरण:* ${details}`
+      );
+      window.open(`https://wa.me/${cleanPhone}?text=${waText}`, '_blank');
+    }
+
+    // 7. Interactive Star Rating & Review System
+    function selectStar(count) {
+      document.getElementById('revStars').value = count;
+      const stars = document.querySelectorAll('#starSelector .star-item');
+      stars.forEach((star, idx) => {
+        if (idx < count) {
+          star.classList.remove('text-slate-300');
+          star.classList.add('text-amber-400');
+        } else {
+          star.classList.remove('text-amber-400');
+          star.classList.add('text-slate-300');
+        }
+      });
+      const labels = ["1/5 - Poor", "2/5 - Fair", "3/5 - Good", "4/5 - Very Good", "5/5 - Excellent!"];
+      document.getElementById('starLabel').innerText = labels[count - 1];
+    }
+
+    function submitCustomerReview(e) {
+      e.preventDefault();
+      const name = document.getElementById('revName').value.trim();
+      const city = document.getElementById('revCity').value.trim() || 'Verified Customer';
+      const stars = parseInt(document.getElementById('revStars').value) || 5;
+      const comment = document.getElementById('revComment').value.trim();
+
+      customerReviews.unshift({
+        id: Date.now(),
+        name,
+        city,
+        stars,
+        comment
+      });
+
+      localStorage.setItem('sanwariya_reviews', JSON.stringify(customerReviews));
+      renderReviews();
+      e.target.reset();
+      selectStar(5);
+      showToast("रिव्यू जोड़ दिया गया!", "आपके फीडबैक के लिए बहुत-बहुत धन्यवाद।");
+    }
+
+    function renderReviews() {
+      const list = document.getElementById('reviewsList');
+      const totalEl = document.getElementById('totalReviewsCount');
+      const avgBadge = document.getElementById('avgRatingBadge');
+      const heroAvg = document.getElementById('heroAvgRating');
+
+      totalEl.innerText = customerReviews.length;
+
+      if (customerReviews.length > 0) {
+        const sum = customerReviews.reduce((acc, r) => acc + r.stars, 0);
+        const avg = (sum / customerReviews.length).toFixed(1);
+        avgBadge.innerText = avg;
+        heroAvg.innerText = `${avg} ⭐`;
+      }
+
+      list.innerHTML = customerReviews.map(r => `
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-slate-900 text-sm">${r.name}</h4>
+              <p class="text-xs text-slate-400">${r.city}</p>
+            </div>
+            <div class="text-amber-400 text-xs">
+              ${'<i class="fa-solid fa-star"></i>'.repeat(r.stars)}${'<i class="fa-regular fa-star text-slate-300"></i>'.repeat(5 - r.stars)}
+            </div>
+          </div>
+          <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">${r.comment}</p>
+        </div>
+      `).join('');
+    }
+
+    // 8. Admin Panel Modal Functions
+    function openAdminModal() {
+      document.getElementById('adminModal').classList.remove('hidden');
+      document.getElementById('adminModal').classList.add('flex');
+      renderAdminDashboard();
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+      document.getElementById('adminModal').classList.remove('flex');
+    }
+
+    function verifyAdminPassword(e) {
+      e.preventDefault();
+      const input = document.getElementById('adminPassInput').value.trim();
+      if (input === 'admin123') {
+        document.getElementById('adminLoginScreen').classList.add('hidden');
+        document.getElementById('adminDashboardScreen').classList.remove('hidden');
+        renderAdminDashboard();
+        showToast("Admin Unlocked", "स्वागत है! अब आप वेबसाइट की सेटिंग्स बदल सकते हैं।");
+      } else {
+        showToast("गलत पासवर्ड!", "कृपया सही पासवर्ड डालें (डिफ़ॉल्ट: admin123)");
+      }
+    }
+
+    function saveAdminSettings() {
+      businessPhone = document.getElementById('adminPhoneInput').value.trim() || '917698026449';
+      carRates = {
+        dzire: parseInt(document.getElementById('adminRateDzire').value) || 12,
+        ertiga: parseInt(document.getElementById('adminRateErtiga').value) || 15,
+        crysta: parseInt(document.getElementById('adminRateCrysta').value) || 19
+      };
+
+      localStorage.setItem('sanwariya_phone_v2', businessPhone);
+      localStorage.setItem('sanwariya_rates', JSON.stringify(carRates));
+      applySiteSettings();
+      showToast("Settings Updated!", "आपका नया नंबर और गाड़ियों के रेट वेबसाइट पर अपडेट हो गए हैं।");
+    }
+
+    function deleteMessageItem(id) {
+      customerMessages = customerMessages.filter(m => m.id !== id);
+      localStorage.setItem('sanwariya_messages', JSON.stringify(customerMessages));
+      renderAdminDashboard();
+    }
+
+    function clearAllMessages() {
+      customerMessages = [];
+      localStorage.setItem('sanwariya_messages', JSON.stringify(customerMessages));
+      renderAdminDashboard();
+      showToast("Cleared", "सभी मैसेज हटा दिए गए हैं।");
+    }
+
+    function deleteReviewItem(id) {
+      customerReviews = customerReviews.filter(r => r.id !== id);
+      localStorage.setItem('sanwariya_reviews', JSON.stringify(customerReviews));
+      renderReviews();
+      renderAdminDashboard();
+    }
+
+    function renderAdminDashboard() {
+      document.getElementById('adminMsgCount').innerText = customerMessages.length;
+      document.getElementById('adminRevCount').innerText = customerReviews.length;
+
+      const msgContainer = document.getElementById('adminMessagesList');
+      msgContainer.innerHTML = customerMessages.length ? customerMessages.map(m => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-start gap-2">
+          <div>
+            <p class="font-bold text-slate-900">${m.name} <a href="tel:${m.phone}" class="text-blue-600 underline ml-1">${m.phone}</a></p>
+            <p class="text-amber-600 font-semibold">${m.car} • Date: ${m.date}</p>
+            <p class="text-slate-600 mt-1">${m.details}</p>
+            <span class="text-[10px] text-slate-400">${m.timestamp || ''}</span>
+          </div>
+          <button onclick="deleteMessageItem(${m.id})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Delete</button>
+        </div>
+      `).join('') : '<p class="text-slate-400">अभी कोई नया मैसेज नहीं है।</p>';
+
+      const revContainer = document.getElementById('adminReviewsList');
+      revContainer.innerHTML = customerReviews.length ? customerReviews.map(r => `
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-start gap-2">
+          <div>
+            <p class="font-bold text-slate-900">${r.name} <span class="text-amber-500">(${r.stars}★)</span></p>
+            <p class="text-slate-600 mt-0.5">${r.comment}</p>
+          </div>
+          <button onclick="deleteReviewItem(${r.id})" class="text-red-500 hover:text-red-700 font-bold px-2 py-1">Delete</button>
+        </div>
+      `).join('') : '<p class="text-slate-400">कोई रिव्यू नहीं है।</p>';
+    }
+
+    // 9. Clean Website HTML Generator (Removes top export bar for clean production file)
+    function getCleanWebsiteHtml() {
+      const clone = document.documentElement.cloneNode(true);
+      const exportBar = clone.querySelector('#builder-export-bar');
+      if (exportBar) exportBar.remove();
+      const googleModal = clone.querySelector('#googleGuideModal');
+      if (googleModal) googleModal.remove();
+      return '<!DOCTYPE html>\n' + clone.outerHTML;
+    }
+
+    function openGoogleGuideModal() {
+      const modal = document.getElementById('googleGuideModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGoogleGuideModal() {
+      const modal = document.getElementById('googleGuideModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // 10. Download ZIP, Single HTML, or Copy Full Code
+    function downloadWebsiteZip() {
+      try {
+        if (typeof JSZip === 'undefined') {
+          downloadSingleHtml();
+          return;
+        }
+        const zip = new JSZip();
+        const cleanHtml = getCleanWebsiteHtml();
+        zip.file("index.html", cleanHtml);
+        zip.file("README.txt", "श्री साँवरिया Tours And Travels - Official Website\n\nPhone / WhatsApp: +91 76980 26449\nAdmin Panel Password: admin123\n\nHow to use:\n1. Extract this ZIP file.\n2. Open index.html in Chrome or upload it to Netlify/Hostinger.");
+
+        zip.generateAsync({ type: "blob" }).then(function(blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = "Shree_Sanwariya_Tours_Website.zip";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast("ZIP डाउनलोड शुरू हो गया!", "आपकी वेबसाइट की .ZIP फाइल डाउनलोड हो रही है।");
+        });
+      } catch (err) {
+        downloadSingleHtml();
+      }
+    }
+
+    function downloadSingleHtml() {
+      try {
+        const cleanHtml = getCleanWebsiteHtml();
+        const blob = new Blob([cleanHtml], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "index.html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast("index.html डाउनलोड हो गया!", "आपकी वेबसाइट फाइल डाउनलोड हो गई है।");
+      } catch (err) {
+        copyWebsiteCode();
+      }
+    }
+
+    function copyWebsiteCode() {
+      const cleanHtml = getCleanWebsiteHtml();
+      const textarea = document.createElement('textarea');
+      textarea.value = cleanHtml;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast("पूरा कोड कॉपी हो गया! 📋", "अब आप इसे किसी भी फाइल (index.html) में Paste कर सकते हैं।");
+    }
+
+    // Initialize Page on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      applySiteSettings();
+      renderReviews();
+    });
+  </script>
+
+</body></html>
